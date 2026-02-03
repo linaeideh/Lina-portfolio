@@ -1,19 +1,61 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Menu, X } from "lucide-react";
-import { Link as ScrollLink } from "react-scroll";
+import { usePathname, useRouter } from "next/navigation";
+import { Menu, X, ChevronDown, GraduationCap, Briefcase, Heart } from "lucide-react";
+import { Link as ScrollLink, scroller } from "react-scroll";
+import { motion, AnimatePresence } from "framer-motion";
 
 import Logo from "./Logo";
 import ThemeToggle from "./ThemeToggle";
 
 const Navbar: React.FC = () => {
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [isJourneyOpen, setIsJourneyOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const journeyLinks = [
+    { name: "Education", id: "education", icon: <GraduationCap size={18} /> },
+    { name: "Internships", id: "internships", icon: <Briefcase size={18} /> },
+    { name: "Volunteering", id: "volunteering", icon: <Heart size={18} /> },
+  ];
+
+  const handleNavClick = (to: string) => {
+    setIsOpen(false);
+    if (pathname !== "/") {
+      router.push(`/#${to}`);
+    }
+  };
+
+  // Helper for scroll links logic
+  const NavItem = ({ to, label, isScroll = true }: { to: string, label: string, isScroll?: boolean }) => {
+    if (pathname === "/" && isScroll) {
+      return (
+        <ScrollLink 
+          to={to} 
+          smooth={true} 
+          duration={500} 
+          spy={true}
+          activeClass="text-theme-accent"
+          className="cursor-pointer text-sm font-black tracking-wide text-theme-primary transition-colors hover:text-theme-accent"
+        >
+          {label}
+        </ScrollLink>
+      );
+    }
+    return (
+      <Link 
+        href={isScroll ? `/#${to}` : to} 
+        className="text-sm font-black tracking-wide text-theme-primary transition-colors hover:text-theme-accent"
+      >
+        {label}
+      </Link>
+    );
+  };
 
   return (
-    <div className='glass text-theme-primary fixed w-full top-0 z-100'>
+    <div className='glass text-theme-primary fixed w-full top-0 z-[100]'>
       <nav className='container mx-auto px-6 py-4'>
         <div className='flex items-center justify-between'>
           {/* Logo */}
@@ -22,52 +64,56 @@ const Navbar: React.FC = () => {
           </Link>
 
           {/* Desktop Menu */}
-          <ul className='hidden md:flex space-x-10 items-center'>
-            <li className='group transition-all'>
-              <Link
-                href='/'
-                className='flex flex-col items-center cursor-pointer group-hover:text-indigo-400 transition-colors'
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              >
-                <span className='text-sm font-semibold tracking-wide'>Home</span>
-                <span className='h-0.5 w-0 group-hover:w-full bg-indigo-400 transition-all duration-300'></span>
+          <ul className='hidden md:flex space-x-8 items-center'>
+            <li>
+              <Link href='/' className='text-sm font-black tracking-wide text-theme-primary transition-colors hover:text-theme-accent'>
+                Home
               </Link>
             </li>
 
             <li className='group transition-all'>
-              <ScrollLink
-                to='About me'
-                smooth={true}
-                duration={500}
-                className='flex flex-col items-center cursor-pointer group-hover:text-indigo-400 transition-colors'
-              >
-                <span className='text-sm font-semibold tracking-wide'>About me</span>
-                <span className='h-0.5 w-0 group-hover:w-full bg-indigo-400 transition-all duration-300'></span>
-              </ScrollLink>
+              <NavItem to="About me" label="About me" />
             </li>
 
-            <li className='group transition-all'>
-              <ScrollLink
-                to='project'
-                smooth={true}
-                duration={500}
-                className='flex flex-col items-center cursor-pointer group-hover:text-indigo-400 transition-colors'
-              >
-                <span className='text-sm font-semibold tracking-wide'>Project</span>
-                <span className='h-0.5 w-0 group-hover:w-full bg-indigo-400 transition-all duration-300'></span>
-              </ScrollLink>
+            {/* My Journey Dropdown */}
+            <li 
+              className='relative'
+              onMouseEnter={() => setIsJourneyOpen(true)}
+              onMouseLeave={() => setIsJourneyOpen(false)}
+            >
+              <Link href="/about" className="text-sm font-black tracking-wide text-theme-primary transition-colors hover:text-theme-accent flex items-center gap-1">
+                My Journey <ChevronDown size={14} className={`transition-transform duration-300 ${isJourneyOpen ? 'rotate-180' : ''}`} />
+              </Link>
+              
+              <AnimatePresence>
+                {isJourneyOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full left-0 mt-2 w-48 glass rounded-2xl border border-theme-primary overflow-hidden shadow-2xl py-2"
+                  >
+                    {journeyLinks.map((link) => (
+                      <Link 
+                        key={link.id} 
+                        href={`/about#${link.id}`}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-theme-tertiary transition-colors text-sm font-bold text-theme-secondary hover:text-theme-accent"
+                      >
+                        {link.icon}
+                        {link.name}
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </li>
 
-            <li className='group transition-all'>
-              <ScrollLink
-                to='contact'
-                smooth={true}
-                duration={500}
-                className='flex flex-col items-center cursor-pointer group-hover:text-indigo-400 transition-colors'
-              >
-                <span className='text-sm font-semibold tracking-wide'>Contact</span>
-                <span className='h-0.5 w-0 group-hover:w-full bg-indigo-400 transition-all duration-300'></span>
-              </ScrollLink>
+            <li>
+              <NavItem to="project" label="Projects" />
+            </li>
+
+            <li>
+              <NavItem to="contact" label="Contact" />
             </li>
           </ul>
 
@@ -75,70 +121,34 @@ const Navbar: React.FC = () => {
           <div className='flex items-center gap-4'>
             <ThemeToggle />
             
-            {/* Mobile Menu Icon */}
-            <div className='md:hidden'>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className='text-2xl focus:outline-none hover:text-indigo-400 transition-colors'
+              className='md:hidden text-2xl focus:outline-none hover:text-theme-accent transition-colors'
               aria-label={isOpen ? "Close menu" : "Open menu"}
               aria-expanded={isOpen}
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            </div>
           </div>
         </div>
 
-        {/* Mobile Menu Dropdown */}
-        {isOpen && (
-          <ul className='flex flex-col items-center space-y-6 mt-6 pb-6 md:hidden glass border-t border-theme-primary rounded-b-2xl animate-fade-in'>
-            <li className='w-full text-center'>
-              <Link
-                href='/'
-                onClick={() => {
-                  setIsOpen(false);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                className='text-base font-semibold block py-2 hover:text-indigo-400 transition-colors'
-              >
-                Home
-              </Link>
-            </li>
-            <li className='w-full text-center'>
-              <ScrollLink
-                to='About me'
-                smooth={true}
-                duration={500}
-                onClick={() => setIsOpen(false)}
-                className='text-base font-semibold block py-2 hover:text-indigo-400 transition-colors cursor-pointer'
-              >
-                About me
-              </ScrollLink>
-            </li>
-            <li className='w-full text-center'>
-              <ScrollLink
-                to='project'
-                smooth={true}
-                duration={500}
-                onClick={() => setIsOpen(false)}
-                className='text-base font-semibold block py-2 hover:text-indigo-400 transition-colors cursor-pointer'
-              >
-                Project
-              </ScrollLink>
-            </li>
-            <li className='w-full text-center'>
-              <ScrollLink
-                to='contact'
-                smooth={true}
-                duration={500}
-                onClick={() => setIsOpen(false)}
-                className='text-base font-semibold block py-2 hover:text-indigo-400 transition-colors cursor-pointer'
-              >
-                Contact
-              </ScrollLink>
-            </li>
-          </ul>
-        )}
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className='md:hidden overflow-hidden glass border-t border-theme-primary flex flex-col'
+            >
+              <Link href='/' onClick={() => setIsOpen(false)} className='text-lg font-black block py-4 px-6 hover:text-theme-accent transition-colors border-b border-theme-primary/10'>Home</Link>
+              <Link href='/#About me' onClick={() => setIsOpen(false)} className='text-lg font-black block py-4 px-6 hover:text-theme-accent transition-colors border-b border-theme-primary/10'>About me</Link>
+              <Link href='/about' onClick={() => setIsOpen(false)} className='text-lg font-black block py-4 px-6 hover:text-theme-accent transition-colors border-b border-theme-primary/10'>My Journey</Link>
+              <Link href='/#project' onClick={() => setIsOpen(false)} className='text-lg font-black block py-4 px-6 hover:text-theme-accent transition-colors border-b border-theme-primary/10'>Projects</Link>
+              <Link href='/#contact' onClick={() => setIsOpen(false)} className='text-lg font-black block py-4 px-6 hover:text-theme-accent transition-colors'>Contact</Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
     </div>
   );

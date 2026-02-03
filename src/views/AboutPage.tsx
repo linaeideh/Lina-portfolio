@@ -1,7 +1,7 @@
 "use client"
-import React, { useEffect } from "react";
-import { motion } from "framer-motion";
-import { Book, Briefcase, Heart } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Book, Briefcase, Heart, Calendar, GraduationCap, Award } from "lucide-react";
 import Image, { StaticImageData } from "next/image";
 
 import School from "../assets/images/School.webp";
@@ -47,6 +47,8 @@ interface VolunteerData {
 }
 
 const AboutPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<"education" | "internships" | "volunteering">("education");
+
   const educationData: EducationItem[] = [
     {
       category: "School",
@@ -130,222 +132,149 @@ const AboutPage: React.FC = () => {
     },
   };
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("opacity-100", "translate-x-0");
-            entry.target.classList.remove(
-              "opacity-0",
-              "translate-x-10",
-              "-translate-x-10"
-            );
-          } else {
-            entry.target.classList.remove("opacity-100", "translate-x-0");
-            if (entry.target.classList.contains("left")) {
-              entry.target.classList.add("opacity-0", "translate-x-10");
-              entry.target.classList.remove("-translate-x-10");
-            } else {
-              entry.target.classList.add("opacity-0", "-translate-x-10");
-              entry.target.classList.remove("translate-x-10");
-            }
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    const items = document.querySelectorAll(".timeline-item");
-    items.forEach((item) => observer.observe(item));
-
-    return () => {
-      items.forEach((item) => observer.unobserve(item));
-    };
-  }, []);
+  const tabs = [
+    { id: "education", label: "Education", icon: <Book size={18} /> },
+    { id: "internships", label: "Internships", icon: <Briefcase size={18} /> },
+    { id: "volunteering", label: "Volunteers", icon: <Heart size={18} /> }
+  ];
 
   return (
-    <div className="bg-theme-primary min-h-screen text-theme-primary pb-20">
-      {/* Quick Navigation Section */}
-      <section className='glass py-10 sticky top-[72px] z-50 border-b border-theme-primary'>
-        <div className='max-w-4xl mx-auto px-8'>
-          <h1 className='text-3xl font-black text-theme-primary mb-6 text-center mt-4 tracking-tight'>
+    <div className="bg-theme-primary min-h-screen text-theme-primary pb-24 pt-24 px-4 sm:px-8">
+      <div className="max-w-6xl mx-auto">
+        
+        {/* Header Title */}
+        <div className="text-center mb-10">
+          <motion.h1 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className='text-5xl sm:text-7xl font-black text-theme-primary mb-4 tracking-tight'
+          >
             My Journey
-          </h1>
-          <div className='flex flex-wrap justify-center gap-4'>
-            {[
-              { id: "education", label: "Education", color: "hover:bg-blue-600", icon: <Book className="w-5 h-5" /> },
-              { id: "internships", label: "Internships", color: "hover:bg-green-600", icon: <Briefcase className="w-5 h-5" /> },
-              { id: "volunteering", label: "Volunteering", color: "hover:bg-purple-600", icon: <Heart className="w-5 h-5" /> }
-            ].map(btn => (
-              <motion.button
-                key={btn.id}
-                onClick={() => scrollToSection(btn.id)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`flex items-center gap-3 bg-theme-tertiary/50 border border-theme-primary ${btn.color} hover:text-theme-primary text-theme-secondary font-bold py-3 px-8 rounded-2xl transition-all duration-300 shadow-xl`}
-              >
-                {btn.icon}
-                {btn.label}
-              </motion.button>
-            ))}
-          </div>
+          </motion.h1>
+          <p className="text-theme-muted font-bold uppercase tracking-widest text-[10px] sm:text-xs">Growth & Experience</p>
         </div>
-      </section>
 
-      {/* Education Section */}
-      <section id='education' className='py-24 relative overflow-hidden scroll-mt-40'>
-        <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[100px] -z-10"></div>
-        <div className='max-w-5xl mx-auto px-8'>
-          <div className="flex flex-col items-center mb-16">
-            <span className="text-blue-400 font-black uppercase tracking-[0.3em] text-xs mb-4 text-center">Academic Background</span>
-            <h2 className='text-5xl font-black text-theme-primary text-center'>Education</h2>
-          </div>
-
-          <div className='relative'>
-            <div className='absolute left-1/2 transform -translate-x-1/2 w-px bg-linear-to-b from-blue-500/50 via-blue-500/20 to-transparent h-full hidden sm:block'></div>
-
-            {educationData.map((item, index) => {
-              const isLeft = index % 2 === 0;
-              return (
-                <div
-                  key={index}
-                  className={`timeline-item ${isLeft ? "left" : "right"} opacity-0 ${
-                    isLeft
-                      ? "sm:w-1/2 sm:pr-12"
-                      : "sm:w-1/2 sm:ml-auto sm:pl-12"
-                  } transition-all duration-700 ease-out mb-16 relative`}
+        {/* STRICT HORIZONTAL TABS FOR MOBILE */}
+        <div className="sticky top-20 z-50 mb-12 sm:mb-16">
+          <div className="flex justify-center">
+            <div className="glass p-1.5 rounded-2xl sm:rounded-3xl border border-theme-primary flex flex-row items-center w-full max-w-2xl shadow-2xl">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 sm:py-4 px-2 rounded-xl sm:rounded-2xl transition-all duration-500 relative ${
+                    activeTab === tab.id 
+                    ? "text-white" 
+                    : "text-theme-secondary hover:bg-theme-tertiary/30"
+                  }`}
                 >
-                  <div className='glass p-8 rounded-[32px] border border-theme-primary hover:border-blue-500/30 transition-all duration-500 group'>
-                    <div className={`hidden sm:block absolute top-1/2 ${isLeft ? "-right-2" : "-left-2"} w-4 h-4 bg-blue-500 rounded-full transform -translate-y-1/2 border-4 border-gray-950 z-10 shadow-[0_0_15px_rgba(59,130,246,0.5)]`}></div>
-
-                    <div className='flex justify-between items-start mb-6'>
-                      <div>
-                        <span className="text-blue-400 font-bold text-xs uppercase tracking-widest">{item.category}</span>
-                        <h3 className='text-2xl font-black text-theme-primary mt-1 group-hover:text-blue-300 transition-colors'>{item.details.name}</h3>
-                      </div>
-                      <div className="w-14 h-14 bg-theme-tertiary/50 rounded-2xl p-2 flex items-center justify-center border border-theme-primary relative">
-                        <Image src={item.logo} alt={item.category} fill className='object-contain p-2' />
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <p className='text-lg font-bold text-gray-200'>{item.details.degree}</p>
-                      <div className="flex flex-wrap gap-4 text-sm font-medium text-gray-400">
-                        <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Grade: {item.details.grade}</span>
-                        <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> {item.details.years}</span>
-                      </div>
-                      {item.details.description && (
-                        <p className='text-gray-400 text-sm leading-relaxed mt-4 italic'>
-                          {item.details.description}
-                        </p>
-                      )}
-                    </div>
+                  {activeTab === tab.id && (
+                    <motion.div 
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-violet-600 rounded-xl sm:rounded-2xl -z-10 shadow-lg shadow-violet-600/30"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                  <div className={`${activeTab === tab.id ? "text-white" : "text-theme-accent"}`}>
+                    {tab.icon}
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Internships Section */}
-      <section id='internships' className='py-24 bg-theme-secondary/50 relative overflow-hidden scroll-mt-40'>
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-green-600/5 rounded-full blur-[100px] -z-10"></div>
-        <div className='max-w-5xl mx-auto px-8'>
-          <div className="flex flex-col items-center mb-16">
-            <span className="text-green-400 font-black uppercase tracking-[0.3em] text-xs mb-4 text-center">Professional Experience</span>
-            <h2 className='text-5xl font-black text-theme-primary text-center'>Internships</h2>
-          </div>
-
-          <div className='relative'>
-            <div className='absolute left-1/2 transform -translate-x-1/2 w-px bg-linear-to-b from-green-500/50 via-green-500/20 to-transparent h-full hidden sm:block'></div>
-
-            {internshipData.map((item, index) => {
-              const isLeft = index % 2 === 0;
-              return (
-                <div
-                  key={index}
-                  className={`timeline-item ${isLeft ? "left" : "right"} opacity-0 ${
-                    isLeft
-                      ? "sm:w-1/2 sm:pr-12"
-                      : "sm:w-1/2 sm:ml-auto sm:pl-12"
-                  } transition-all duration-700 ease-out mb-16 relative`}
-                >
-                  <div className='glass p-8 rounded-[32px] border border-theme-primary hover:border-green-500/30 transition-all duration-500 group'>
-                    <div className={`hidden sm:block absolute top-1/2 ${isLeft ? "-right-2" : "-left-2"} w-4 h-4 bg-green-500 rounded-full transform -translate-y-1/2 border-4 border-gray-950 z-10 shadow-[0_0_15px_rgba(34,197,94,0.5)]`}></div>
-
-                    <div className='flex justify-between items-start mb-6'>
-                      <div>
-                        <span className="text-green-400 font-bold text-xs uppercase tracking-widest">{item.category}</span>
-                        <h3 className='text-2xl font-black text-theme-primary mt-1 group-hover:text-green-300 transition-colors'>{item.details.name}</h3>
-                      </div>
-                      <div className="w-14 h-14 bg-theme-tertiary/50 rounded-2xl p-2 flex items-center justify-center border border-theme-primary relative">
-                        <Image src={item.logo} alt={item.category} fill className='object-contain p-2' />
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <p className='text-lg font-bold text-gray-200'>Role: {item.details.role}</p>
-                      <p className='text-green-400 text-sm font-black tracking-widest uppercase'>{item.details.years}</p>
-                      <p className='text-gray-400 text-sm leading-relaxed mt-4 italic'>
-                        {item.details.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Volunteering Section */}
-      <section id='volunteering' className='py-24 relative overflow-hidden scroll-mt-40'>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/5 rounded-full blur-[120px] -z-10"></div>
-        <div className='max-w-3xl mx-auto px-8'>
-          <div className="flex flex-col items-center mb-16">
-            <span className="text-purple-400 font-black uppercase tracking-[0.3em] text-xs mb-4 text-center">Community Impact</span>
-            <h2 className='text-5xl font-black text-theme-primary text-center'>Volunteering</h2>
-          </div>
-          
-          <div className='timeline-item opacity-0 transition-all duration-700 ease-out'>
-            <div className='glass p-10 rounded-[40px] border border-theme-primary hover:border-purple-500/30 transition-all duration-500 group'>
-              <div className='flex flex-col sm:flex-row justify-between items-start gap-6 mb-8'>
-                <div>
-                  <span className="text-purple-400 font-bold text-xs uppercase tracking-widest">{volunteerData.category}</span>
-                  <h3 className='text-3xl font-black text-theme-primary mt-2 group-hover:text-purple-300 transition-colors'>{volunteerData.details.name}</h3>
-                </div>
-                <div className="bg-theme-tertiary/50 rounded-2xl p-4 border border-theme-primary relative w-24 h-24">
-                  <Image src={volunteerData.logo} alt={volunteerData.category} fill className='object-contain p-2' />
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <p className='text-xl font-bold text-gray-200'>Role: {volunteerData.details.role}</p>
-                <div className="inline-block px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 font-black text-xs tracking-widest uppercase">
-                  {volunteerData.details.years}
-                </div>
-                <p className='text-gray-400 text-lg leading-relaxed mt-6 italic'>
-                  {volunteerData.details.description}
-                </p>
-              </div>
+                  <span className="text-[10px] sm:text-sm font-black whitespace-nowrap">{tab.label}</span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
-      </section>
+
+        {/* Content Area */}
+        <div className="max-w-4xl mx-auto">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+              className="space-y-6 sm:space-y-10"
+            >
+              {activeTab === "education" && educationData.map((item, idx) => (
+                <JourneyCard key={idx} icon={<GraduationCap />} color="blue" title={item.details.name} subtitle={item.details.degree} date={item.details.years} extra={`Grade: ${item.details.grade}`} desc={item.details.description} logo={item.logo} />
+              ))}
+
+              {activeTab === "internships" && internshipData.map((item, idx) => (
+                <JourneyCard key={idx} icon={<Briefcase />} color="green" title={item.details.name} subtitle={item.details.role} date={item.details.years} desc={item.details.description} logo={item.logo} />
+              ))}
+
+              {activeTab === "volunteering" && (
+                <JourneyCard icon={<Heart />} color="purple" title={volunteerData.details.name} subtitle={volunteerData.details.role} date={volunteerData.details.years} desc={volunteerData.details.description} logo={volunteerData.logo} />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
     </div>
+  );
+};
+
+// Reusable Card Component
+interface JourneyCardProps {
+  icon: React.ReactElement;
+  color: string;
+  title: string;
+  subtitle: string;
+  date: string;
+  extra?: string;
+  desc?: string;
+  logo: StaticImageData;
+}
+
+const JourneyCard: React.FC<JourneyCardProps> = ({ icon, color, title, subtitle, date, extra, desc, logo }) => {
+  const colorMap: any = {
+    blue: "text-blue-500 bg-blue-500/10 border-blue-500/20",
+    green: "text-green-500 bg-green-500/10 border-green-500/20",
+    purple: "text-purple-500 bg-purple-500/10 border-purple-500/20"
+  };
+
+  return (
+    <motion.div className="glass p-6 sm:p-10 rounded-[24px] sm:rounded-[40px] border border-theme-primary hover:border-violet-500/30 transition-all duration-500 group relative">
+      <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 items-start">
+        <div className="relative flex-shrink-0">
+          <div className="w-16 h-16 sm:w-28 sm:h-28 bg-theme-primary rounded-2xl p-3 sm:p-5 border border-theme-primary shadow-xl flex items-center justify-center overflow-hidden">
+            <Image src={logo} alt={title} fill className="object-contain p-2" />
+          </div>
+          <div className={`absolute -bottom-2 -right-2 sm:-bottom-4 sm:-right-4 w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-2xl flex items-center justify-center border shadow-lg ${colorMap[color]}`}>
+            {React.cloneElement(icon, { size: 20 } as any)}
+          </div>
+        </div>
+
+        <div className="flex-1 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h3 className="text-xl sm:text-3xl font-black text-theme-primary tracking-tight leading-tight">{title}</h3>
+            <span className={`inline-block w-fit px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-black tracking-widest uppercase border ${colorMap[color]}`}>
+              {date}
+            </span>
+          </div>
+          
+          <div className="space-y-2">
+            <p className="text-lg sm:text-2xl font-bold text-theme-secondary opacity-90 leading-tight">{subtitle}</p>
+            {extra && (
+              <p className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-violet-400">
+                <Award size={16} /> {extra}
+              </p>
+            )}
+          </div>
+
+          {desc && (
+            <p className="text-theme-muted text-sm sm:text-lg leading-relaxed italic border-l-4 border-theme-tertiary pl-5 sm:pl-8 mt-6">
+              "{desc}"
+            </p>
+          )}
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
